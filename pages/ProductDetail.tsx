@@ -1,22 +1,27 @@
 
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { MOCK_PRODUCTS, TRANSLATIONS } from '../constants';
+import { TRANSLATIONS } from '../constants';
 import { useApp } from '../context/AppContext';
 import { Star, ShieldCheck, Truck, RefreshCw, ShoppingCart, MessageSquare, ChevronLeft, ArrowRight } from 'lucide-react';
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { language, addToCart } = useApp();
+  const { language, addToCart, products } = useApp();
   const t = TRANSLATIONS[language];
-  const product = MOCK_PRODUCTS.find(p => p.id === id);
+  const product = products.find(p => p.id === id);
 
-  const [selectedColor, setSelectedColor] = useState(product?.colors[0]);
-  const [selectedSize, setSelectedSize] = useState(product?.sizes[0]);
+  const [selectedColor, setSelectedColor] = useState(product?.colors?.[0]);
+  const [selectedSize, setSelectedSize] = useState(product?.sizes?.[0]);
   const [activeTab, setActiveTab] = useState<'desc' | 'specs' | 'reviews'>('desc');
 
-  if (!product) return <div>Product not found</div>;
+  if (!product) return (
+    <div className="flex flex-col items-center justify-center py-40">
+      <h1 className="text-3xl font-black mb-4">Mahsulot topilmadi</h1>
+      <button onClick={() => navigate('/')} className="bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold">Ortga qaytish</button>
+    </div>
+  );
 
   const installmentPrice = Math.round(product.price * 1.12 / 12);
 
@@ -67,34 +72,38 @@ const ProductDetail: React.FC = () => {
           <div className="space-y-10">
             {/* Options */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-              <div className="space-y-4">
-                <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">{t.color}</p>
-                <div className="flex flex-wrap gap-3">
-                  {product.colors.map(color => (
-                    <button 
-                      key={color} 
-                      onClick={() => setSelectedColor(color)}
-                      className={`px-6 py-3 rounded-2xl text-sm font-bold border-2 transition-all ${selectedColor === color ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 shadow-lg shadow-indigo-100 dark:shadow-none' : 'border-slate-100 dark:border-slate-800 dark:text-slate-300 hover:border-indigo-300'}`}
-                    >
-                      {color}
-                    </button>
-                  ))}
+              {product.colors && product.colors.length > 0 && (
+                <div className="space-y-4">
+                  <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">{t.color}</p>
+                  <div className="flex flex-wrap gap-3">
+                    {product.colors.map(color => (
+                      <button 
+                        key={color} 
+                        onClick={() => setSelectedColor(color)}
+                        className={`px-6 py-3 rounded-2xl text-sm font-bold border-2 transition-all ${selectedColor === color ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 shadow-lg shadow-indigo-100 dark:shadow-none' : 'border-slate-100 dark:border-slate-800 dark:text-slate-300 hover:border-indigo-300'}`}
+                      >
+                        {color}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-              <div className="space-y-4">
-                <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">{t.size}</p>
-                <div className="flex flex-wrap gap-3">
-                  {product.sizes.map(size => (
-                    <button 
-                      key={size} 
-                      onClick={() => setSelectedSize(size)}
-                      className={`px-6 py-3 rounded-2xl text-sm font-bold border-2 transition-all ${selectedSize === size ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 shadow-lg shadow-indigo-100 dark:shadow-none' : 'border-slate-100 dark:border-slate-800 dark:text-slate-300 hover:border-indigo-300'}`}
-                    >
-                      {size}
-                    </button>
-                  ))}
+              )}
+              {product.sizes && product.sizes.length > 0 && (
+                <div className="space-y-4">
+                  <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">{t.size}</p>
+                  <div className="flex flex-wrap gap-3">
+                    {product.sizes.map(size => (
+                      <button 
+                        key={size} 
+                        onClick={() => setSelectedSize(size)}
+                        className={`px-6 py-3 rounded-2xl text-sm font-bold border-2 transition-all ${selectedSize === size ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 shadow-lg shadow-indigo-100 dark:shadow-none' : 'border-slate-100 dark:border-slate-800 dark:text-slate-300 hover:border-indigo-300'}`}
+                      >
+                        {size}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Price Box */}
@@ -167,7 +176,7 @@ const ProductDetail: React.FC = () => {
           {[
             { id: 'desc', label: t.description },
             { id: 'specs', label: t.characteristics },
-            { id: 'reviews', label: `${t.reviews} (${product.reviewsCount})` }
+            { id: 'reviews', label: `${t.reviews} (0)` }
           ].map(tab => (
             <button 
               key={tab.id}
@@ -183,7 +192,6 @@ const ProductDetail: React.FC = () => {
           {activeTab === 'desc' && (
             <div className="prose dark:prose-invert max-w-4xl text-slate-600 dark:text-slate-400 text-lg leading-relaxed space-y-8 font-medium">
               <p>{product.description[language]}</p>
-              <p>O'zining ajoyib xususiyatlari va yuqori sifati bilan ajralib turadigan ushbu mahsulot sizning kundalik hayotingizda ajralmas hamrohingizga aylanadi. Biz faqat original va kafolatlangan mahsulotlarni taqdim etamiz.</p>
               <div className="grid md:grid-cols-2 gap-10 mt-12">
                  <div className="bg-slate-50 dark:bg-slate-800 p-8 rounded-[2rem] border border-slate-100 dark:border-slate-700">
                     <h5 className="text-slate-900 dark:text-white font-black mb-4">Yuqori Sifat</h5>
@@ -198,7 +206,7 @@ const ProductDetail: React.FC = () => {
           )}
           {activeTab === 'specs' && (
             <div className="max-w-4xl grid gap-y-4">
-              {Object.entries(product.specs).map(([key, val]) => (
+              {Object.entries(product.specs || {}).map(([key, val]) => (
                 <div key={key} className="flex justify-between items-center py-6 border-b border-slate-50 dark:border-slate-800 group hover:bg-slate-50/50 dark:hover:bg-slate-800/30 px-4 rounded-xl transition-colors">
                   <span className="text-base font-bold text-slate-500 uppercase tracking-widest">{key}</span>
                   <span className="text-base font-black text-slate-900 dark:text-white">{val}</span>
@@ -215,25 +223,7 @@ const ProductDetail: React.FC = () => {
                     <span>Fikr qoldirish</span>
                   </button>
                </div>
-               <div className="grid gap-10">
-                 {[1,2].map(i => (
-                   <div key={i} className="bg-white dark:bg-slate-800 p-10 rounded-[2.5rem] border border-slate-100 dark:border-slate-700 space-y-6 shadow-sm">
-                      <div className="flex justify-between items-start">
-                        <div className="flex items-center space-x-5">
-                          <div className="w-14 h-14 bg-indigo-100 dark:bg-indigo-900/50 rounded-2xl flex items-center justify-center font-black text-indigo-600 text-xl">A</div>
-                          <div>
-                            <p className="text-lg font-black text-slate-900 dark:text-white">Azizbek {i === 1 ? 'Rahimov' : 'Karimov'}</p>
-                            <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">12.02.2024</p>
-                          </div>
-                        </div>
-                        <div className="flex text-amber-400">
-                          {[...Array(5)].map((_, s) => <Star key={s} size={16} fill="currentColor" />)}
-                        </div>
-                      </div>
-                      <p className="text-lg text-slate-600 dark:text-slate-400 font-medium leading-relaxed italic">"Juda ajoyib mahsulot, sifati kutganimdan ham yaxshi. Xizmat ko'rsatish darajasi va tezkor yetkazib berish uchun alohida rahmat! UzStore jamoasiga omad."</p>
-                   </div>
-                 ))}
-               </div>
+               <p className="text-slate-500 italic">Hozircha fikrlar mavjud emas.</p>
             </div>
           )}
         </div>

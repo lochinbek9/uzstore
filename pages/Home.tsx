@@ -1,13 +1,13 @@
 
 import React from 'react';
-import { MOCK_PRODUCTS, TRANSLATIONS } from '../constants';
+import { TRANSLATIONS } from '../constants';
 import { useApp } from '../context/AppContext';
 import ProductCard from '../components/ProductCard';
 import { ChevronRight, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Home: React.FC = () => {
-  const { language } = useApp();
+  const { language, products } = useApp();
   const t = TRANSLATIONS[language];
 
   return (
@@ -55,7 +55,7 @@ const Home: React.FC = () => {
           </Link>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {MOCK_PRODUCTS.map(product => (
+          {products.slice(0, 8).map(product => (
             <ProductCard key={product.id} product={product} />
           ))}
         </div>
@@ -97,7 +97,7 @@ const Home: React.FC = () => {
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {MOCK_PRODUCTS.filter(p => p.isNew).map(product => (
+          {products.filter(p => p.isNew).map(product => (
             <ProductCard key={product.id} product={product} />
           ))}
         </div>

@@ -1,8 +1,10 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { AppState, Language, Theme, CartItem, User } from '../types';
+import { AppState, Language, Theme, CartItem, User, Product } from '../types';
+import { MOCK_PRODUCTS } from '../constants';
 
 interface AppContextType extends AppState {
+  products: Product[];
   setLanguage: (lang: Language) => void;
   setTheme: (theme: Theme) => void;
   addToCart: (item: CartItem) => void;
@@ -12,6 +14,9 @@ interface AppContextType extends AppState {
   toggleCompare: (productId: string) => void;
   setUser: (user: User | null) => void;
   setPromocode: (code: string | null) => void;
+  addProduct: (product: Product) => void;
+  updateProduct: (product: Product) => void;
+  deleteProduct: (id: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -24,12 +29,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [compare, setCompare] = useState<string[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [promocode, setPromocode] = useState<string | null>(null);
+  const [products, setProducts] = useState<Product[]>(MOCK_PRODUCTS);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') as Theme;
     if (savedTheme) setTheme(savedTheme);
     document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+    
+    const savedProducts = localStorage.getItem('products');
+    if (savedProducts) setProducts(JSON.parse(savedProducts));
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem('products', JSON.stringify(products));
+  }, [products]);
 
   const handleSetTheme = (newTheme: Theme) => {
     setTheme(newTheme);
@@ -53,6 +66,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const toggleFavorite = (id: string) => setFavorites(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
   const toggleCompare = (id: string) => setCompare(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
 
+  const addProduct = (p: Product) => setProducts(prev => [...prev, p]);
+  const updateProduct = (p: Product) => setProducts(prev => prev.map(item => item.id === p.id ? p : item));
+  const deleteProduct = (id: string) => setProducts(prev => prev.filter(p => p.id !== id));
+
   return (
     <AppContext.Provider value={{
       language, setLanguage,
@@ -61,7 +78,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       favorites, toggleFavorite,
       compare, toggleCompare,
       user, setUser,
-      promocode, setPromocode
+      promocode, setPromocode,
+      products, addProduct, updateProduct, deleteProduct
     }}>
       {children}
     </AppContext.Provider>
